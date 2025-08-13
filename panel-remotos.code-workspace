@@ -1,0 +1,31 @@
+﻿{
+    "folders": [
+        {
+            "name": "Backend (.NET)",
+            "path": "./backend"
+        },
+        {
+            "name": "Frontend (Angular)",
+            "path": "./frontend/panel-remotos-web"
+        },
+        {
+            "name": "Documentation",
+            "path": "./docs"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/node_modules": true,
+            "**/bin": true,
+            "**/obj": true
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-dotnettools.csharp",
+            "angular.ng-template",
+            "ms-vscode.vscode-typescript-next",
+            "esbenp.prettier-vscode"
+        ]
+    }
+}

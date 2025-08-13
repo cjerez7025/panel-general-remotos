@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelGeneralRemotos.Api", "src\PanelGeneralRemotos.Api\PanelGeneralRemotos.Api.csproj", "{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelGeneralRemotos.Domain", "src\PanelGeneralRemotos.Domain\PanelGeneralRemotos.Domain.csproj", "{7054B6CC-6406-46AA-A0D6-059BE736DC70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelGeneralRemotos.Application", "src\PanelGeneralRemotos.Application\PanelGeneralRemotos.Application.csproj", "{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelGeneralRemotos.Infrastructure", "src\PanelGeneralRemotos.Infrastructure\PanelGeneralRemotos.Infrastructure.csproj", "{C7549DB8-EC0C-44E5-A53A-305213B9582A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanelGeneralRemotos.Shared", "src\PanelGeneralRemotos.Shared\PanelGeneralRemotos.Shared.csproj", "{5F2C7320-A666-4446-856C-69BD56B627FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7054B6CC-6406-46AA-A0D6-059BE736DC70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7054B6CC-6406-46AA-A0D6-059BE736DC70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7054B6CC-6406-46AA-A0D6-059BE736DC70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7054B6CC-6406-46AA-A0D6-059BE736DC70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7549DB8-EC0C-44E5-A53A-305213B9582A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7549DB8-EC0C-44E5-A53A-305213B9582A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7549DB8-EC0C-44E5-A53A-305213B9582A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7549DB8-EC0C-44E5-A53A-305213B9582A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F2C7320-A666-4446-856C-69BD56B627FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F2C7320-A666-4446-856C-69BD56B627FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F2C7320-A666-4446-856C-69BD56B627FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F2C7320-A666-4446-856C-69BD56B627FD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{68ECFEA2-9B5D-4D88-90F8-4DAC0FF9D9AF} = {7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}
+		{7054B6CC-6406-46AA-A0D6-059BE736DC70} = {7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}
+		{1A6F7470-62F2-4DEF-BA3E-E04A7FE7BA05} = {7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}
+		{C7549DB8-EC0C-44E5-A53A-305213B9582A} = {7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}
+		{5F2C7320-A666-4446-856C-69BD56B627FD} = {7A217C6E-218C-4E3B-B8E1-DF5F9FBC0E76}
+	EndGlobalSection
+EndGlobal
