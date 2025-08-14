@@ -165,5 +165,39 @@ namespace PanelGeneralRemotos.Api.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// ✅ NUEVO: Endpoint para probar el dashboard
+        /// </summary>
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> TestDashboard()
+        {
+            try
+            {
+                _logger.LogInformation("Testing dashboard functionality...");
+                
+                // Aquí puedes agregar pruebas específicas del dashboard
+                var result = new
+                {
+                    success = true,
+                    message = "Dashboard test endpoint working",
+                    timestamp = DateTime.UtcNow,
+                    endpoints = new[]
+                    {
+                        "/api/test/connection",
+                        "/api/test/sync-all", 
+                        "/api/test/sheets-status",
+                        "/api/test/sync-stats"
+                    }
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error testing dashboard");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }

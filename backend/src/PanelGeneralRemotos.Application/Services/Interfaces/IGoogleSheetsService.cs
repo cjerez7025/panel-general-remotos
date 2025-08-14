@@ -11,7 +11,25 @@ using PanelGeneralRemotos.Domain.Entities;
 using PanelGeneralRemotos.Domain.Enums;
 
 namespace PanelGeneralRemotos.Application.Services.Interfaces;
+// ✅ AGREGAR ESTOS MÉTODOS AL IGoogleSheetsService.cs
 
+/// <summary>
+/// Verifica estado de conectividad con Google Sheets
+/// MÉTODO FALTANTE - usado en TestController
+/// </summary>
+Task<ConnectionStatus> CheckConnectionAsync();
+
+/// <summary>
+/// Obtiene todas las configuraciones de hojas
+/// MÉTODO FALTANTE - usado en DashboardService
+/// </summary>
+Task<List<SheetStatusInfo>> GetAllSheetsStatusAsync();
+
+/// <summary>
+/// Obtiene estadísticas de sincronización
+/// MÉTODO FALTANTE - usado en DashboardService  
+/// </summary>
+Task<SyncStatistics> GetSyncStatisticsAsync();
 /// <summary>
 /// Servicio principal para la integración con Google Sheets API
 /// Maneja la lectura dinámica de datos cuando el usuario presiona "Actualizar"

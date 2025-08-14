@@ -2,29 +2,35 @@ using PanelGeneralRemotos.Application.Services.Interfaces;
 using PanelGeneralRemotos.Application.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
-// Registrar servicios
-builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();  // ← AGREGAR ESTA LÍNEA
+
 // Add services to the container.
 builder.Services.AddControllers();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Registrar GoogleSheetsService
+// ✅ CORREGIDO: Registro único de servicios (eliminé duplicados)
 builder.Services.AddScoped<IGoogleSheetsService, GoogleSheetsService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ICallRecordService, CallRecordService>();
+builder.Services.AddScoped<IPerformanceMetricService, PerformanceMetricService>();
 
-// Configurar CORS para desarrollo
+// ✅ AGREGADO: SignalR para tiempo real
+builder.Services.AddSignalR();
+
+// ✅ CORREGIDO: CORS más completo
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // Importante para SignalR
     });
 });
+
+// ✅ AGREGADO: Health Checks
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -37,10 +43,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// ✅ CORREGIDO: Orden correcto de middleware
 app.UseCors("AllowFrontend");
-
 app.UseAuthorization();
 
+// ✅ AGREGADO: Health check endpoint
+app.MapHealthChecks("/health");
+
 app.MapControllers();
+
+// ✅ AGREGADO: SignalR Hub (cuando lo implementes)
+// app.MapHub<DashboardHub>("/dashboardHub");
 
 app.Run();

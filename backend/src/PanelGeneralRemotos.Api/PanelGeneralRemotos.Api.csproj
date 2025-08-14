@@ -9,11 +9,24 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    
+    <!-- ✅ AGREGADOS: Paquetes necesarios para SignalR y CORS -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+    
+    <!-- ✅ AGREGADOS: Health Checks -->
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
+    
+    <!-- ✅ AGREGADOS: Logging mejorado -->
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PanelGeneralRemotos.Application\PanelGeneralRemotos.Application.csproj" />
     <ProjectReference Include="..\PanelGeneralRemotos.Infrastructure\PanelGeneralRemotos.Infrastructure.csproj" />
+    <ProjectReference Include="..\PanelGeneralRemotos.Domain\PanelGeneralRemotos.Domain.csproj" />
   </ItemGroup>
 
 </Project>
