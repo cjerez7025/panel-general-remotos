@@ -1,7 +1,8 @@
 using PanelGeneralRemotos.Application.Models.DTOs;
 using PanelGeneralRemotos.Domain.Entities;
 using PanelGeneralRemotos.Domain.Enums;
-namespace PanelGeneralRemotos.Api.Services.Interfaces
+
+namespace PanelGeneralRemotos.Application.Services.Interfaces
 {
     /// <summary>
     /// Servicio para el manejo de métricas de rendimiento de ejecutivos remotos

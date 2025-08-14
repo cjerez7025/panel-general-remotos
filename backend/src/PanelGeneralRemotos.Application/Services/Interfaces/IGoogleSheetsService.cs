@@ -11,25 +11,7 @@ using PanelGeneralRemotos.Domain.Entities;
 using PanelGeneralRemotos.Domain.Enums;
 
 namespace PanelGeneralRemotos.Application.Services.Interfaces;
-// ✅ AGREGAR ESTOS MÉTODOS AL IGoogleSheetsService.cs
 
-/// <summary>
-/// Verifica estado de conectividad con Google Sheets
-/// MÉTODO FALTANTE - usado en TestController
-/// </summary>
-Task<ConnectionStatus> CheckConnectionAsync();
-
-/// <summary>
-/// Obtiene todas las configuraciones de hojas
-/// MÉTODO FALTANTE - usado en DashboardService
-/// </summary>
-Task<List<SheetStatusInfo>> GetAllSheetsStatusAsync();
-
-/// <summary>
-/// Obtiene estadísticas de sincronización
-/// MÉTODO FALTANTE - usado en DashboardService  
-/// </summary>
-Task<SyncStatistics> GetSyncStatisticsAsync();
 /// <summary>
 /// Servicio principal para la integración con Google Sheets API
 /// Maneja la lectura dinámica de datos cuando el usuario presiona "Actualizar"
@@ -70,6 +52,7 @@ public interface IGoogleSheetsService
 
     /// <summary>
     /// Verifica el estado de conexión con Google Sheets API
+    /// MÉTODO FALTANTE - usado en TestController
     /// </summary>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns>Estado de la conexión</returns>
@@ -83,6 +66,7 @@ public interface IGoogleSheetsService
 
     /// <summary>
     /// Obtiene el estado actual de todas las configuraciones de Google Sheets
+    /// MÉTODO FALTANTE - usado en DashboardService
     /// </summary>
     /// <returns>Lista con el estado de cada configuración</returns>
     Task<List<SheetStatusInfo>> GetAllSheetsStatusAsync();
@@ -105,6 +89,7 @@ public interface IGoogleSheetsService
 
     /// <summary>
     /// Obtiene estadísticas de sincronización para el dashboard
+    /// MÉTODO FALTANTE - usado en DashboardService  
     /// </summary>
     /// <returns>Estadísticas de la última sincronización</returns>
     Task<SyncStatistics> GetSyncStatisticsAsync();

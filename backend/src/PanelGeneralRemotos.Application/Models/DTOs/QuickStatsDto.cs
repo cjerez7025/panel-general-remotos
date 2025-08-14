@@ -95,7 +95,11 @@ public class QuickStatsDto
     /// Breakdown por sponsor para análisis rápido
     /// </summary>
     public List<SponsorQuickStatsDto> SponsorBreakdown { get; set; } = new();
-    public string TrendIndicator { get; internal set; }
+
+    /// <summary>
+    /// ✅ CORREGIDO: Indicador de tendencia con valor por defecto
+    /// </summary>
+    public string TrendIndicator { get; set; } = "stable";
 }
 
 /// <summary>
