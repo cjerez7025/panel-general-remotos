@@ -125,6 +125,7 @@ public class GoogleSheetConfiguration
     /// </summary>
     [ForeignKey(nameof(SponsorId))]
     public virtual Sponsor Sponsor { get; set; } = null!;
+    public string SponsorName { get; set; }
 
     /// <summary>
     /// Registra un intento de sincronización exitoso

@@ -1,3 +1,9 @@
+// ============================================================================
+// ARCHIVO COMPLETO CORREGIDO: TestController.cs
+// backend/src/PanelGeneralRemotos.Api/Controllers/TestController.cs
+// TODAS LAS CORRECCIONES APLICADAS - Eliminados errores async/await
+// ============================================================================
+
 using Microsoft.AspNetCore.Mvc;
 using PanelGeneralRemotos.Application.Services.Interfaces;
 
@@ -43,26 +49,26 @@ namespace PanelGeneralRemotos.Api.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning("❌ Google Sheets connection failed: {Message}", connectionStatus.Message);
-                    return BadRequest(result);
+                    _logger.LogWarning("⚠️ Google Sheets connection failed: {Message}", connectionStatus.Message);
+                    return StatusCode(503, result);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error testing Google Sheets connection");
+                _logger.LogError(ex, "❌ Error testing Google Sheets connection");
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// Prueba de sincronización de todas las hojas
+        /// Prueba de sincronización completa
         /// </summary>
         [HttpPost("sync-all")]
         public async Task<IActionResult> TestSyncAll()
         {
             try
             {
-                _logger.LogInformation("Testing sync of all Google Sheets...");
+                _logger.LogInformation("Testing full synchronization...");
                 
                 var syncResult = await _googleSheetsService.SyncAllSheetsAsync();
                 
@@ -72,18 +78,21 @@ namespace PanelGeneralRemotos.Api.Controllers
                     sheetsProcessed = syncResult.SheetsProcessed,
                     sheetsWithErrors = syncResult.SheetsWithErrors,
                     callRecordsUpdated = syncResult.CallRecordsUpdated,
-                    duration = syncResult.Duration.TotalSeconds,
-                    errors = syncResult.Errors.Select(e => new { 
-                        sheetName = e.SheetName, 
-                        message = e.Message,
-                        errorType = e.ErrorType.ToString()
-                    }),
-                    syncDateTime = syncResult.SyncDateTime
+                    performanceMetricsUpdated = syncResult.PerformanceMetricsUpdated,
+                    duration = syncResult.Duration.TotalMilliseconds,
+                    syncDateTime = syncResult.SyncDateTime,
+                    errors = syncResult.Errors.Select(e => new
+                    {
+                        sheetName = e.SheetName,
+                        errorType = e.ErrorType.ToString(),
+                        message = e.Message
+                    }).ToList(),
+                    warnings = syncResult.Warnings
                 };
 
                 if (syncResult.Success)
                 {
-                    _logger.LogInformation("✅ Sync completed successfully! Processed {SheetsProcessed} sheets", syncResult.SheetsProcessed);
+                    _logger.LogInformation("✅ Sync test completed successfully. Processed {SheetsProcessed} sheets", syncResult.SheetsProcessed);
                     return Ok(result);
                 }
                 else
@@ -94,7 +103,7 @@ namespace PanelGeneralRemotos.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during sync test");
+                _logger.LogError(ex, "❌ Error during sync test");
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
@@ -132,7 +141,7 @@ namespace PanelGeneralRemotos.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting sheets status");
+                _logger.LogError(ex, "❌ Error getting sheets status");
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
@@ -161,22 +170,65 @@ namespace PanelGeneralRemotos.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting sync statistics");
+                _logger.LogError(ex, "❌ Error getting sync statistics");
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 
         /// <summary>
-        /// ✅ NUEVO: Endpoint para probar el dashboard
+        /// Validar configuración de una hoja específica
+        /// </summary>
+        [HttpPost("validate-sheet")]
+        public async Task<IActionResult> ValidateSheetConfiguration([FromBody] ValidateSheetRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.SpreadsheetId) || string.IsNullOrEmpty(request.SheetName))
+                {
+                    return BadRequest(new { success = false, message = "SpreadsheetId y SheetName son requeridos" });
+                }
+
+                var configuration = new Domain.Entities.GoogleSheetConfiguration
+                {
+                    SpreadsheetId = request.SpreadsheetId,
+                    SheetName = request.SheetName
+                };
+
+                var validationResult = await _googleSheetsService.ValidateSheetConfigurationAsync(configuration);
+
+                var result = new
+                {
+                    success = validationResult.IsValid,
+                    errors = validationResult.Errors,
+                    warnings = validationResult.Warnings,
+                    sheetInfo = validationResult.SheetInfo != null ? new
+                    {
+                        title = validationResult.SheetInfo.Title,
+                        totalRows = validationResult.SheetInfo.TotalRows,
+                        totalColumns = validationResult.SheetInfo.TotalColumns,
+                        headers = validationResult.SheetInfo.Headers
+                    } : null
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error validating sheet configuration");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// ✅ CORREGIDO: Endpoint de prueba del dashboard - SIN async
         /// </summary>
         [HttpGet("dashboard")]
-        public async Task<IActionResult> TestDashboard()
+        public Task<IActionResult> TestDashboard()
         {
             try
             {
                 _logger.LogInformation("Testing dashboard functionality...");
                 
-                // Aquí puedes agregar pruebas específicas del dashboard
                 var result = new
                 {
                     success = true,
@@ -187,17 +239,85 @@ namespace PanelGeneralRemotos.Api.Controllers
                         "/api/test/connection",
                         "/api/test/sync-all", 
                         "/api/test/sheets-status",
-                        "/api/test/sync-stats"
+                        "/api/test/sync-stats",
+                        "/api/test/validate-sheet"
+                    },
+                    systemInfo = new
+                    {
+                        environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development",
+                        dotnetVersion = Environment.Version.ToString(),
+                        processId = Environment.ProcessId,
+                        machineName = Environment.MachineName
                     }
                 };
 
-                return Ok(result);
+                // ✅ CORREGIDO: Usar Task.FromResult para evitar error async/await
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error testing dashboard");
-                return StatusCode(500, new { success = false, message = ex.Message });
+                _logger.LogError(ex, "❌ Error testing dashboard");
+                // ✅ CORREGIDO: Usar Task.FromResult para evitar error async/await
+                return Task.FromResult<IActionResult>(StatusCode(500, new { success = false, message = ex.Message }));
             }
         }
+
+        /// <summary>
+        /// Endpoint de estado del controlador
+        /// </summary>
+        [HttpGet("status")]
+        public IActionResult GetControllerStatus()
+        {
+            return Ok(new
+            {
+                controller = "TestController",
+                status = "Running",
+                timestamp = DateTime.UtcNow,
+                version = "1.0.0",
+                availableEndpoints = new[]
+                {
+                    "GET /api/test/connection - Prueba conexión Google Sheets",
+                    "POST /api/test/sync-all - Prueba sincronización completa",
+                    "GET /api/test/sheets-status - Estado de todas las hojas",
+                    "GET /api/test/sync-stats - Estadísticas de sincronización",
+                    "POST /api/test/validate-sheet - Validar configuración de hoja",
+                    "GET /api/test/dashboard - Prueba funcionalidad dashboard",
+                    "GET /api/test/status - Estado del controlador"
+                }
+            });
+        }
+
+        /// <summary>
+        /// Health check básico
+        /// </summary>
+        [HttpGet("health")]
+        public IActionResult HealthCheck()
+        {
+            return Ok(new
+            {
+                status = "Healthy",
+                timestamp = DateTime.UtcNow,
+                uptime = TimeSpan.FromTicks(Environment.TickCount),
+                checks = new
+                {
+                    googleSheetsService = _googleSheetsService != null ? "Available" : "Not Available",
+                    logger = _logger != null ? "Available" : "Not Available"
+                }
+            });
+        }
+    }
+
+    // ============================================================================
+    // CLASES DE SOPORTE
+    // ============================================================================
+
+    /// <summary>
+    /// Request para validar configuración de hoja
+    /// </summary>
+    public class ValidateSheetRequest
+    {
+        public string SpreadsheetId { get; set; } = string.Empty;
+        public string SheetName { get; set; } = string.Empty;
+        public string? SponsorName { get; set; }
     }
 }
