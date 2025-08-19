@@ -244,10 +244,53 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
             throw new NotImplementedException("Implementar método completo");
         }
 
-        public Task<List<SyncStatusDto>> GetSyncStatusAsync(CancellationToken cancellationToken = default)
+public async Task<List<object>> GetSyncStatusAsync(CancellationToken cancellationToken = default)
+{
+    try
+    {
+        _logger.LogDebug("Getting sync status from Google Sheets Service...");
+        
+        var sheetStatusList = await _googleSheetsService.GetAllSheetsStatusAsync();
+        var syncStats = await _googleSheetsService.GetSyncStatisticsAsync();
+        var connectionStatus = await _googleSheetsService.CheckConnectionAsync(cancellationToken);
+        
+        var result = sheetStatusList.Select(sheet => new
         {
-            throw new NotImplementedException("Implementar método completo");
-        }
+            sponsorName = sheet.SponsorName,
+            executiveName = sheet.ExecutiveName,
+            sheetName = sheet.SheetName,
+            status = sheet.Status.ToString(),
+            lastSyncDate = sheet.LastSyncDate,
+            isConnected = connectionStatus.IsConnected,
+            errorMessage = sheet.LastErrorMessage ?? "No errors",
+            rowsProcessed = 0,
+            nextSyncTime = DateTime.UtcNow.AddMinutes(30)
+        }).ToList();
+        
+        _logger.LogDebug("✅ Sync status retrieved: {Count} sheets", result.Count);
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "❌ Error getting sync status");
+        
+        return new List<object>
+        {
+            new 
+            {
+                sponsorName = "System",
+                executiveName = "Error",
+                sheetName = "Connection Error",
+                status = "Failed",
+                errorMessage = ex.Message,
+                isConnected = false,
+                lastSyncDate = (DateTime?)null,
+                rowsProcessed = 0,
+                nextSyncTime = DateTime.UtcNow.AddMinutes(30)
+            }
+        };
+    }
+}
 
         public Task<RealTimeMetricsDto> GetRealTimeMetricsAsync(CancellationToken cancellationToken = default)
         {

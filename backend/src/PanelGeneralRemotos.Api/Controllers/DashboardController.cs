@@ -201,7 +201,7 @@ namespace PanelGeneralRemotos.Api.Controllers
         /// Obtiene estado de sincronización
         /// </summary>
         [HttpGet("sync-status")]
-        public async Task<ActionResult<List<SyncStatusDto>>> GetSyncStatus(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<List<object>>> GetSyncStatus(CancellationToken cancellationToken = default)
         {
             try
             {

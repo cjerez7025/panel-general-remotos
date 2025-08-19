@@ -112,8 +112,7 @@ public interface IDashboardService
     /// </summary>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns>Estado de sincronización por sponsor</returns>
-    Task<List<SyncStatusDto>> GetSyncStatusAsync(CancellationToken cancellationToken = default);
-
+    Task<List<object>> GetSyncStatusAsync(CancellationToken cancellationToken = default);
     /// <summary>
     /// Obtiene métricas en tiempo real para envío vía SignalR
     /// </summary>

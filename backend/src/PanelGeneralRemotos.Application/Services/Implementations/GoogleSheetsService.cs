@@ -1,7 +1,7 @@
 // ============================================================================
 // ARCHIVO COMPLETO CORREGIDO: GoogleSheetsService.cs
 // backend/src/PanelGeneralRemotos.Application/Services/Implementations/GoogleSheetsService.cs
-// TODAS LAS CORRECCIONES APLICADAS - VERSIÓN FINAL
+// TODAS LAS CORRECCIONES APLICADAS - VERSIÓN FINAL CON INICIALIZACIÓN
 // ============================================================================
 
 using Google.Apis.Auth.OAuth2;
@@ -50,6 +50,56 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
             _cachedData = new Dictionary<string, List<CallRecordData>>();
         }
 
+        public async Task<bool> InitializeAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🔧 Inicializando Google Sheets Service...");
+
+                var credentialsPath = _configuration["GoogleSheets:CredentialsPath"];
+                var applicationName = _configuration["GoogleSheets:ApplicationName"];
+
+                if (string.IsNullOrEmpty(credentialsPath))
+                {
+                    _logger.LogError("❌ Ruta de credenciales no configurada");
+                    return false;
+                }
+
+                // Buscar el archivo de credenciales
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), credentialsPath);
+                if (!File.Exists(fullPath))
+                {
+                    _logger.LogError("❌ Archivo de credenciales no encontrado en: {Path}", fullPath);
+                    return false;
+                }
+
+                _logger.LogDebug("📁 Leyendo credenciales desde: {Path}", fullPath);
+
+                // Cargar credenciales
+                GoogleCredential credential;
+                using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
+                {
+                    credential = GoogleCredential.FromStream(stream)
+                        .CreateScoped(SheetsService.Scope.SpreadsheetsReadonly);
+                }
+
+                // Crear servicio de Sheets
+                _sheetsService = new SheetsService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = applicationName ?? "Panel General Remotos"
+                });
+
+                _logger.LogInformation("✅ Google Sheets Service inicializado correctamente");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error inicializando Google Sheets Service");
+                return false;
+            }
+        }
+
         public async Task<SyncResult> SyncAllSheetsAsync(CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
@@ -60,22 +110,32 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
 
             try
             {
+                // Inicializar servicio si no está listo
+                if (_sheetsService == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        result.Success = false;
+                        result.Errors.Add(new SyncError
+                        {
+                            ConfigurationId = 0,
+                            SheetName = "System",
+                            ErrorType = SheetErrorType.ConnectionError,
+                            Message = "Failed to initialize Google Sheets Service"
+                        });
+                        return result;
+                    }
+                }
+
                 _logger.LogInformation("🔄 Starting sync of all Google Sheets...");
 
                 var syncTasks = _sheetConfigurations.Select(async kvp =>
                 {
                     try
                     {
-                        // TODO: Implementar sincronización real con Google Sheets API
-                        // Por ahora simular datos
-                        await Task.Delay(50, cancellationToken);
+                        await SyncSingleSheetAsync(kvp.Key, kvp.Value, cancellationToken);
                         
-                        lock (_lockObject)
-                        {
-                            _cachedData[kvp.Key] = new List<CallRecordData>();
-                            _lastSyncTimes[kvp.Key] = DateTime.UtcNow;
-                        }
-
                         return new { 
                             Success = true, 
                             SheetName = kvp.Key, 
@@ -92,7 +152,6 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                             {
                                 ConfigurationId = 0,
                                 SheetName = kvp.Key,
-                                // ✅ CORREGIDO: ConnectionError en lugar de Unknown
                                 ErrorType = SheetErrorType.ConnectionError,
                                 Message = ex.Message,
                                 Exception = ex.ToString()
@@ -127,7 +186,6 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                 {
                     ConfigurationId = 0,
                     SheetName = "System",
-                    // ✅ CORREGIDO: ConnectionError en lugar de Unknown
                     ErrorType = SheetErrorType.ConnectionError,
                     Message = $"Critical sync error: {ex.Message}",
                     Exception = ex.ToString()
@@ -158,7 +216,7 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                 throw new InvalidOperationException("Google Sheets Service not initialized");
             }
 
-            _logger.LogDebug("Syncing sheet: {SheetName}", sheetName);
+            _logger.LogDebug("📖 Syncing sheet: {SheetName} ({SpreadsheetId})", sheetName, config.SpreadsheetId);
 
             var range = "A:T"; // Columnas A a T (20 columnas como en BBDD_REPORTE)
             
@@ -167,7 +225,7 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
 
             if (response?.Values == null || response.Values.Count == 0)
             {
-                _logger.LogWarning("No data found in sheet {SheetName}", sheetName);
+                _logger.LogWarning("⚠️ No data found in sheet {SheetName}", sheetName);
                 return;
             }
 
@@ -179,7 +237,7 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                 _lastSyncTimes[sheetName] = DateTime.UtcNow;
             }
 
-            _logger.LogInformation("Successfully synced {Count} records from sheet {SheetName}", 
+            _logger.LogInformation("✅ Successfully synced {Count} records from sheet {SheetName}", 
                 callRecords.Count, sheetName);
         }
 
@@ -189,12 +247,16 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
             {
                 if (_sheetsService == null)
                 {
-                    return new SheetDataResult
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
                     {
-                        Success = false,
-                        ErrorMessage = "Google Sheets Service not initialized",
-                        ErrorType = SheetErrorType.ConnectionError
-                    };
+                        return new SheetDataResult
+                        {
+                            Success = false,
+                            ErrorMessage = "Google Sheets Service not initialized",
+                            ErrorType = SheetErrorType.ConnectionError
+                        };
+                    }
                 }
 
                 var range = $"{configuration.SheetName}!A:Z";
@@ -243,22 +305,39 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
             
             try
             {
-                // TODO: Implementar check real de Google Sheets API
-                _logger.LogInformation("Checking Google Sheets connection...");
+                if (_sheetsService == null)
+                {
+                    var initResult = await InitializeAsync();
+                    if (!initResult)
+                    {
+                        return new ConnectionStatus
+                        {
+                            IsConnected = false,
+                            Message = "Failed to initialize Google Sheets Service",
+                            ResponseTime = DateTime.UtcNow - startTime,
+                            CheckDateTime = DateTime.UtcNow
+                        };
+                    }
+                }
+
+                _logger.LogInformation("🧪 Testing Google Sheets connection...");
                 
-                await Task.Delay(100, cancellationToken); // Simular delay de red
+                // Probar con la primera hoja configurada
+                var firstSheet = _sheetConfigurations.First();
+                var request = _sheetsService!.Spreadsheets.Get(firstSheet.Value.SpreadsheetId);
+                var response = await request.ExecuteAsync();
                 
                 return new ConnectionStatus
                 {
-                    IsConnected = true, // Simular conexión exitosa por ahora
-                    Message = "Connection successful (mock mode)",
+                    IsConnected = true,
+                    Message = $"Connection successful. Test sheet: {response.Properties?.Title}",
                     ResponseTime = DateTime.UtcNow - startTime,
                     CheckDateTime = DateTime.UtcNow
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Connection test failed");
+                _logger.LogError(ex, "❌ Connection test failed");
                 return new ConnectionStatus
                 {
                     IsConnected = false,
@@ -269,7 +348,6 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
             }
         }
 
-        // ✅ CORREGIDO: Especificar tipo explícitamente en Task.FromResult
         public Task<DateTime?> GetLastSyncDateAsync()
         {
             var result = _lastSyncTimes.Values.Any() ? _lastSyncTimes.Values.Max() : (DateTime?)null;
@@ -330,17 +408,30 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                     result.Errors.Add("SheetName is required");
                 }
 
-                // TODO: Implementar validación real con Google Sheets API
-                // Por ahora, validación básica
-                if (result.Errors.Count == 0)
+                // Validación real con Google Sheets API
+                if (result.Errors.Count == 0 && _sheetsService != null)
+                {
+                    try
+                    {
+                        var request = _sheetsService.Spreadsheets.Get(configuration.SpreadsheetId);
+                        var response = await request.ExecuteAsync();
+                        
+                        result.IsValid = true;
+                        result.SheetInfo = new SheetMetadata
+                        {
+                            Title = response.Properties?.Title ?? configuration.SheetName,
+                            Headers = new List<string> { "ejecutivo", "sponsor", "estado" },
+                            TotalColumns = 3
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        result.Errors.Add($"Failed to access sheet: {ex.Message}");
+                    }
+                }
+                else if (result.Errors.Count == 0)
                 {
                     result.IsValid = true;
-                    result.SheetInfo = new SheetMetadata
-                    {
-                        Title = configuration.SheetName,
-                        Headers = new List<string> { "ejecutivo", "sponsor", "estado" },
-                        TotalColumns = 3
-                    };
                 }
 
                 return result;
@@ -408,7 +499,6 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                         TotalSheets = _sheetConfigurations.Count,
                         SuccessfulSheets = _cachedData.Count,
                         FailedSheets = _sheetConfigurations.Count - _cachedData.Count,
-                        // ✅ CORREGIDO: TotalRecordsSyncedToday en lugar de TotalRecords
                         TotalRecordsSyncedToday = _cachedData.Values.SelectMany(records => records)
                             .Count(r => r.CallDate.Date == DateTime.Today),
                         AverageSyncDuration = TimeSpan.FromMinutes(2) // Mock value
