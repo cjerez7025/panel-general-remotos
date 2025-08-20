@@ -1,0 +1,141 @@
+<div class="dashboard-container">
+  <!-- Header del Dashboard -->
+  <div class="dashboard-header">
+    <h1>Panel General Remotos</h1>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
+        {{ loading ? 'Cargando...' : 'Actualizar' }}
+      </button>
+      <button class="force-refresh-btn" (click)="forceRefresh()" [disabled]="loading">
+        Sincronizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Cargando datos del dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <p>{{ error }}</p>
+    <button (click)="refreshData()">Reintentar</button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="quickStats && !loading" class="dashboard-content">
+    
+    <!-- Quick Stats Cards -->
+    <div class="quick-stats-grid">
+      <div class="stat-card total-calls">
+        <div class="stat-icon">📞</div>
+        <div class="stat-content">
+          <h3>{{ quickStats.totalCallsToday }}</h3>
+          <p>Total Llamadas del Día</p>
+          <span class="trend" [ngClass]="quickStats.trendIndicator">
+            {{ quickStats.callsChangePercentage > 0 ? '+' : '' }}{{ quickStats.callsChangePercentage }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="stat-card sponsors">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-content">
+          <h3>{{ quickStats.activeSponsors }}</h3>
+          <p>Sponsors Activos</p>
+          <span class="info">{{ quickStats.problematicSponsors }} problemáticos</span>
+        </div>
+      </div>
+
+      <div class="stat-card contacted">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>{{ quickStats.contactedPercentage }}%</h3>
+          <p>Contactados</p>
+          <span class="info">De {{ quickStats.totalCallsToday }} llamadas</span>
+        </div>
+      </div>
+
+      <div class="stat-card goal-progress">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+          <h3>{{ quickStats.goalProgressPercentage }}%</h3>
+          <p>Avance hacia Meta</p>
+          <span class="info">Meta: {{ quickStats.totalDailyGoal }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="system-status">
+      <h2>Estado del Sistema</h2>
+      <div class="status-info">
+        <span class="status-indicator" 
+              [style.background-color]="quickStats.systemStatus === 0 ? '#10B981' : '#EF4444'">
+        </span>
+        <span>{{ getSystemStatusText(quickStats.systemStatus) }}</span>
+        <span class="last-update">
+          Última actualización: {{ quickStats.minutesSinceLastSync }} min ago
+        </span>
+      </div>
+      <p *ngIf="quickStats.statusMessage">{{ quickStats.statusMessage }}</p>
+    </div>
+
+    <!-- Sponsor Breakdown -->
+    <div class="sponsor-breakdown" *ngIf="quickStats.sponsorBreakdown && quickStats.sponsorBreakdown.length > 0">
+      <h2>Rendimiento por Sponsor</h2>
+      <div class="sponsors-grid">
+        <div *ngFor="let sponsor of quickStats.sponsorBreakdown" class="sponsor-card">
+          <div class="sponsor-header">
+            <h3>{{ sponsor.sponsorName }}</h3>
+            <div class="sponsor-color" [style.background-color]="sponsor.colorHex"></div>
+          </div>
+          <div class="sponsor-stats">
+            <div class="stat">
+              <label>Llamadas Hoy:</label>
+              <strong>{{ sponsor.callsToday }}</strong>
+            </div>
+            <div class="stat">
+              <label>Meta Diaria:</label>
+              <strong>{{ sponsor.dailyGoal }}</strong>
+            </div>
+            <div class="stat">
+              <label>% Cumplimiento:</label>
+              <strong [style.color]="sponsor.goalPercentage >= 90 ? '#10B981' : sponsor.goalPercentage >= 70 ? '#F59E0B' : '#EF4444'">
+                {{ sponsor.goalPercentage }}%
+              </strong>
+            </div>
+            <div class="stat">
+              <label>Ejecutivos Activos:</label>
+              <strong>{{ sponsor.activeExecutives }}</strong>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" 
+                 [style.width.%]="sponsor.goalPercentage"
+                 [style.background-color]="sponsor.colorHex">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sync Status Preview -->
+    <div class="sync-status-preview" *ngIf="syncStatus && syncStatus.length > 0">
+      <h2>Estado de Sincronización</h2>
+      <div class="sync-summary">
+        <p>{{ syncStatus.length }} hojas configuradas</p>
+        <div class="sync-indicators">
+          <span *ngFor="let sheet of syncStatus.slice(0, 5)" 
+                class="sync-dot"
+                [ngClass]="{ 'success': sheet.isConnected, 'failed': !sheet.isConnected }"
+                [title]="sheet.sheetName + ': ' + (sheet.isConnected ? 'Conectado' : 'Fallido')">
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
