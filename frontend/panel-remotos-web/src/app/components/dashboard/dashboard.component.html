@@ -60,292 +60,258 @@
       </div>
     </div>
 
-    <!-- Tab Content: Llamadas por Fecha (con drill-down) -->
-    <div class="tab-content" [class.active]="activeTab === 'llamadas'" *ngIf="quickStats && !loading">
+    <!-- Main Content cuando no hay loading ni error -->
+    <div *ngIf="!loading && !error && quickStats">
       
-      <!-- Vista Principal -->
-      <div *ngIf="currentView === 'main'" class="main-view">
-        <div class="table-container">
-          <table class="summary-table calls-table">
-            <thead>
-              <tr>
-                <th>Sponsor</th>
-                <th>Ejecutivos</th>
-                <th>Llamadas Hoy</th>
-                <th>Meta Diaria</th>
-                <th>Progreso %</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="sponsor-row" 
-                  *ngFor="let sponsor of quickStats.sponsorBreakdown"
-                  (click)="drillDownSponsor(sponsor)">
-                <td class="row-header">
-                  {{ sponsor.sponsorName }}
-                  <span class="drill-indicator">▶</span>
-                </td>
-                <td>{{ sponsor.activeExecutives }}</td>
-                <td class="calls-count">{{ sponsor.callsToday }}</td>
-                <td class="goal-count">{{ sponsor.dailyGoal }}</td>
-                <td class="percentage" [ngClass]="getPercentageClass(sponsor.goalPercentage)">
-                  {{ sponsor.goalPercentage }}%
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(sponsor.status)">
-                    {{ getStatusText(sponsor.status) }}
-                  </span>
-                </td>
-                <td>
-                  <button class="action-btn" (click)="$event.stopPropagation(); drillDownSponsor(sponsor)">
-                    Ver Detalle
-                  </button>
-                </td>
-              </tr>
-              <tr class="total-row">
-                <td><strong>TOTAL</strong></td>
-                <td><strong>{{ quickStats.totalActiveExecutives }}</strong></td>
-                <td><strong>{{ quickStats.totalCallsToday }}</strong></td>
-                <td><strong>{{ quickStats.totalDailyGoal }}</strong></td>
-                <td class="percentage excellent">
-                  <strong>{{ quickStats.goalProgressPercentage }}%</strong>
-                </td>
-                <td>
-                  <span class="status-badge" [ngClass]="getSystemStatusClass(quickStats.systemStatus)">
-                    {{ getSystemStatusText(quickStats.systemStatus) }}
-                  </span>
-                </td>
-                <td>
-                  <button class="action-btn primary" (click)="forceRefresh()">
-                    🔄 Sincronizar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- TAB 1: Llamadas por Fecha -->
+      <div class="tab-content" [class.active]="activeTab === 'llamadas'">
+        
+        <!-- Vista Principal de Llamadas -->
+        <div *ngIf="currentView === 'main'" class="table-section">
+          <div class="table-container">
+            <table class="summary-table calls-table">
+              <thead>
+                <tr>
+                  <th>Sponsor</th>
+                  <th>Ejecutivos Activos</th>
+                  <th>Llamadas Hoy</th>
+                  <th>Meta Diaria</th>
+                  <th>% Progreso</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sponsor of quickStats?.sponsors; let i = index" 
+                    [class]="getSponsorRowClass(sponsor)"
+                    (click)="viewSponsorDetail(sponsor)">
+                  <td class="row-header">
+                    {{ sponsor.sponsorName }}
+                    <div *ngIf="sponsor.hasIssues" class="warning-indicator" 
+                         [class.error-indicator]="sponsor.severity === 'error'">
+                      {{ sponsor.issueCount }}
+                    </div>
+                  </td>
+                  <td><strong>{{ sponsor.activeExecutives | number }}</strong></td>
+                  <td><strong>{{ sponsor.callsToday | number }}</strong></td>
+                  <td><strong>{{ sponsor.dailyGoal | number }}</strong></td>
+                  <td><span [class]="getPercentageClass(sponsor.goalPercentage / 100)">
+                    {{ sponsor.goalPercentage }}%
+                  </span></td>
+                  <td>
+                    <span class="status-badge" [style.background-color]="sponsor.colorHex">
+                      {{ getStatusText(sponsor.status) }}
+                    </span>
+                  </td>
+                </tr>
+                
+                <!-- Fila de Totales -->
+                <tr class="total-row" *ngIf="quickStats?.sponsors?.length">
+                  <td><strong>TOTALES</strong></td>
+                  <td><strong>{{ getTotalActiveExecutives() | number }}</strong></td>
+                  <td><strong>{{ getTotalCalls() | number }}</strong></td>
+                  <td><strong>{{ getTotalTarget() | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(getTotalTargetProgress()) }}</strong></td>
+                  <td><strong>{{ quickStats?.sponsors?.length }} Sponsors</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <!-- Gráfico principal -->
-        <div class="chart-section">
-          <div class="chart-header">
-            <h3>📊 Distribución de Llamadas por Sponsor</h3>
+        <!-- Vista Detalle de Sponsor -->
+        <div *ngIf="currentView === 'detail' && selectedSponsor" class="table-section">
+          <button class="back-btn" (click)="backToMain()">← Volver al Resumen</button>
+          
+          <div class="table-header">
+            <h3 class="table-title">Detalle por Ejecutivo - {{ selectedSponsor.name }}</h3>
           </div>
-          <div class="chart-container">
-            <highcharts-chart 
-              [Highcharts]="Highcharts"
-              [options]="callsChartOptions">
-            </highcharts-chart>
+          
+          <div class="table-container">
+            <table class="summary-table calls-table">
+              <thead>
+                <tr>
+                  <th>Ejecutivo</th>
+                  <th>Total Leads</th>
+                  <th>Llamadas Hechas</th>
+                  <th>% Contactabilidad</th>
+                  <th>Conectadas</th>
+                  <th>% Efectividad</th>
+                  <th>Ventas</th>
+                  <th>% Conversión</th>
+                  <th>No Conectadas</th>
+                  <th>% No Conectadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let executive of executiveData" class="executive-row">
+                  <td class="executive-name">{{ executive.name }}</td>
+                  <td><strong>{{ executive.totalLeads | number }}</strong></td>
+                  <td><strong>{{ executive.totalCalls | number }}</strong></td>
+                  <td><span [class]="getPercentageClass(executive.contactabilityRate)">
+                    {{ formatPercentage(executive.contactabilityRate) }}
+                  </span></td>
+                  <td><strong>{{ executive.connectedCalls | number }}</strong></td>
+                  <td><span [class]="getPercentageClass(executive.effectivenessRate)">
+                    {{ formatPercentage(executive.effectivenessRate) }}
+                  </span></td>
+                  <td><strong>{{ executive.sales | number }}</strong></td>
+                  <td><span [class]="getPercentageClass(executive.conversionRate)">
+                    {{ formatPercentage(executive.conversionRate) }}
+                  </span></td>
+                  <td><strong>{{ executive.notConnectedCalls | number }}</strong></td>
+                  <td><span [class]="getPercentageClass(executive.notConnectedRate, true)">
+                    {{ formatPercentage(executive.notConnectedRate) }}
+                  </span></td>
+                </tr>
+                
+                <!-- Totales del Sponsor -->
+                <tr class="total-row">
+                  <td><strong>TOTALES {{ selectedSponsor.name }}</strong></td>
+                  <td><strong>{{ selectedSponsor.totalLeads | number }}</strong></td>
+                  <td><strong>{{ selectedSponsor.totalCalls | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(selectedSponsor.contactabilityRate) }}</strong></td>
+                  <td><strong>{{ selectedSponsor.connectedCalls | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(selectedSponsor.effectivenessRate) }}</strong></td>
+                  <td><strong>{{ selectedSponsor.sales | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(selectedSponsor.conversionRate) }}</strong></td>
+                  <td><strong>{{ selectedSponsor.notConnectedCalls | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(selectedSponsor.notConnectedRate) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
+
       </div>
 
-      <!-- Vista de Drill-Down (Detalle por Ejecutivos) -->
-      <div *ngIf="currentView === 'detail'" class="detail-view">
-        <!-- Back button -->
-        <button class="back-btn" (click)="backToMain()">
-          ◀ Volver al Resumen General
-        </button>
-
-        <!-- Header del drill-down -->
-        <div class="detail-header">
-          <h3>Detalle de Ejecutivos - {{ selectedSponsor?.sponsorName }}</h3>
-          <div class="detail-summary">
-            <span class="summary-item">
-              <strong>{{ selectedSponsor?.activeExecutives }}</strong> Ejecutivos Activos
-            </span>
-            <span class="summary-item">
-              <strong>{{ selectedSponsor?.callsToday }}</strong> Llamadas Hoy
-            </span>
-            <span class="summary-item">
-              <strong>{{ selectedSponsor?.goalPercentage }}%</strong> Progreso
-            </span>
+      <!-- TAB 2: Rendimiento y Métricas -->
+      <div class="tab-content" [class.active]="activeTab === 'rendimiento'">
+        
+        <!-- Métricas Generales Grid - DATOS REALES -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">📞</div>
+            <div class="metric-content">
+              <h4>{{ quickStats?.totalCallsToday | number }}</h4>
+              <p>Total Llamadas Hoy</p>
+              <small>Desde todos los sponsors</small>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-content">
+              <h4>{{ quickStats?.totalDailyGoal | number }}</h4>
+              <p>Meta Diaria Total</p>
+              <small>{{ formatPercentage(quickStats?.goalProgressPercentage / 100) }} completado</small>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-content">
+              <h4>{{ quickStats?.totalActiveExecutives | number }}</h4>
+              <p>Ejecutivos Activos</p>
+              <small>{{ formatNumber(quickStats?.averageCallsPerExecutive) }} llamadas promedio</small>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+              <h4>{{ quickStats?.activeSponsors | number }}</h4>
+              <p>Sponsors Activos</p>
+              <small>{{ quickStats?.problematicSponsors || 0 }} con problemas</small>
+            </div>
           </div>
         </div>
 
-        <!-- Tabla de ejecutivos -->
-        <div class="table-container">
-          <table class="summary-table executive-table">
-            <thead>
-              <tr>
-                <th>Ejecutivo</th>
-                <th>Equipo</th>
-                <th>Llamadas</th>
-                <th>Meta</th>
-                <th>% Avance</th>
-                <th>Contactados</th>
-                <th>Interesados</th>
-                <th>Cerrados</th>
-                <th>Rendimiento</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="executive-row" *ngFor="let executive of executiveData">
-                <td class="executive-name">{{ executive.name }}</td>
-                <td>{{ executive.team }}</td>
-                <td>{{ executive.callsToday }}</td>
-                <td>{{ executive.goal }}</td>
-                <td class="percentage" [ngClass]="getPercentageClass(executive.percentage)">
-                  {{ executive.percentage }}%
-                </td>
-                <td>{{ executive.contactados }}</td>
-                <td>{{ executive.interesados }}</td>
-                <td>{{ executive.cerrados }}</td>
-                <td>
-                  <span class="rendimiento" [ngClass]="getRendimientoClass(executive.percentage)">
-                    {{ getRendimientoText(executive.percentage) }}
-                  </span>
-                </td>
-              </tr>
-              <tr class="total-row">
-                <td><strong>TOTAL {{ selectedSponsor?.sponsorName }}</strong></td>
-                <td>{{ selectedSponsor?.activeExecutives }} equipos</td>
-                <td><strong>{{ calculateExecutiveTotal('callsToday') }}</strong></td>
-                <td><strong>{{ calculateExecutiveTotal('goal') }}</strong></td>
-                <td class="percentage excellent">
-                  <strong>{{ selectedSponsor?.goalPercentage }}%</strong>
-                </td>
-                <td><strong>{{ calculateExecutiveTotal('contactados') }}</strong></td>
-                <td><strong>{{ calculateExecutiveTotal('interesados') }}</strong></td>
-                <td><strong>{{ calculateExecutiveTotal('cerrados') }}</strong></td>
-                <td>
-                  <span class="rendimiento" [ngClass]="getRendimientoClass(selectedSponsor?.goalPercentage)">
-                    <strong>{{ getRendimientoText(selectedSponsor?.goalPercentage) }}</strong>
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Tabla de Rendimiento Detallada - SOLO DATOS REALES -->
+        <div class="table-section">
+          <div class="table-header">
+            <h3 class="table-title">Análisis de Rendimiento por Sponsor</h3>
+            <p class="table-subtitle">Datos reales de Google Sheets</p>
+          </div>
+          
+          <div class="table-container">
+            <table class="summary-table performance-table">
+              <thead>
+                <tr>
+                  <th>Sponsor</th>
+                  <th>Ejecutivos</th>
+                  <th>Llamadas Hoy</th>
+                  <th>Meta Diaria</th>
+                  <th>% Progreso</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let sponsor of quickStats?.sponsors">
+                  <!-- Solo datos reales del backend -->
+                  <tr [class]="getSponsorRowClass(sponsor)" (click)="toggleSponsorExpansion(sponsor)">
+                    <td class="row-header">
+                      <span class="sponsor-toggle">{{ sponsor.expanded ? '▼' : '▶' }}</span>
+                      {{ sponsor.sponsorName }}
+                      <div *ngIf="sponsor.hasIssues" class="warning-indicator" 
+                           [class.error-indicator]="sponsor.severity === 'error'">
+                        {{ sponsor.issueCount }}
+                      </div>
+                    </td>
+                    <td><strong>{{ sponsor.activeExecutives | number }}</strong></td>
+                    <td><strong>{{ sponsor.callsToday | number }}</strong></td>
+                    <td><strong>{{ sponsor.dailyGoal | number }}</strong></td>
+                    <td><span [class]="getPercentageClass(sponsor.goalPercentage / 100)">
+                      {{ sponsor.goalPercentage }}%
+                    </span></td>
+                    <td>
+                      <span class="status-badge" [style.background-color]="sponsor.colorHex">
+                        {{ getStatusText(sponsor.status) }}
+                      </span>
+                    </td>
+                  </tr>
+                  
+                  <!-- Ejecutivos (cuando se expande) -->
+                  <ng-container *ngIf="sponsor.expanded">
+                    <tr *ngFor="let executive of sponsor.executives" class="executive-row">
+                      <td class="executive-name">{{ executive.name }}</td>
+                      <td>-</td>
+                      <td><strong>{{ executive.callsToday || 0 | number }}</strong></td>
+                      <td><strong>{{ executive.dailyGoal || 0 | number }}</strong></td>
+                      <td><span [class]="getPercentageClass(executive.goalPercentage / 100)">
+                        {{ executive.goalPercentage || 0 }}%
+                      </span></td>
+                      <td>{{ getStatusText(executive.status || 0) }}</td>
+                    </tr>
+                  </ng-container>
+                </ng-container>
+                
+                <!-- Totales reales -->
+                <tr class="total-row" *ngIf="quickStats?.sponsors?.length">
+                  <td><strong>TOTALES REALES</strong></td>
+                  <td><strong>{{ getTotalActiveExecutives() | number }}</strong></td>
+                  <td><strong>{{ getTotalCalls() | number }}</strong></td>
+                  <td><strong>{{ getTotalTarget() | number }}</strong></td>
+                  <td><strong>{{ formatPercentage(getTotalTargetProgress()) }}</strong></td>
+                  <td><strong>{{ quickStats?.sponsors?.length }} Sponsors</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <!-- Gráfico del sponsor específico -->
-        <div class="chart-section">
-          <div class="chart-header">
-            <h3>📈 Rendimiento por Ejecutivo - {{ selectedSponsor?.sponsorName }}</h3>
-          </div>
-          <div class="chart-container">
-            <highcharts-chart 
-              [Highcharts]="Highcharts"
-              [options]="executiveChartOptions">
-            </highcharts-chart>
-          </div>
-        </div>
       </div>
 
-      <div class="info-section">
-        <strong>💡 Información:</strong> 
-        <span *ngIf="currentView === 'main'">
-          Haga clic en cualquier fila de sponsor para ver el detalle por ejecutivo.
-        </span>
-        <span *ngIf="currentView === 'detail'">
-          Mostrando detalle de ejecutivos para {{ selectedSponsor?.sponsorName }}.
-        </span>
-        Datos actualizados cada {{ (quickStats?.minutesSinceLastSync) || 30 }} minutos desde Google Sheets.
-        <strong>Sistema:</strong> {{ getSystemStatusText(quickStats.systemStatus) }}
-      </div>
     </div>
 
-    <!-- Tab Content: Rendimiento y Métricas (con datos reales) -->
-    <div class="tab-content" [class.active]="activeTab === 'rendimiento'" *ngIf="quickStats && !loading">
-      <div class="table-container">
-        <table class="summary-table performance-table">
-          <thead>
-            <tr>
-              <th>Sponsor</th>
-              <th>Ejecutivos</th>
-              <th>Llamadas</th>
-              <th>Meta</th>
-              <th>% Avance</th>
-              <th>Contactados</th>
-              <th>% Contacto</th>
-              <th>Eficiencia</th>
-              <th>Rendimiento</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="sponsor-row" 
-                *ngFor="let sponsor of quickStats.sponsorBreakdown"
-                (click)="drillDownSponsor(sponsor)">
-              <td class="row-header">
-                {{ sponsor.sponsorName }}
-                <span class="drill-indicator">▶</span>
-              </td>
-              <td>{{ sponsor.activeExecutives }}</td>
-              <td>{{ sponsor.callsToday }}</td>
-              <td>{{ sponsor.dailyGoal }}</td>
-              <td class="percentage" [ngClass]="getPercentageClass(sponsor.goalPercentage)">
-                {{ sponsor.goalPercentage }}%
-              </td>
-              <td>{{ calculateContactados(sponsor.callsToday) }}</td>
-              <td class="percentage" [ngClass]="getContactPercentageClass()">
-                {{ quickStats.contactedPercentage }}%
-              </td>
-              <td class="percentage" [ngClass]="getEfficiencyClass(sponsor.goalPercentage)">
-                {{ calculateEfficiency(sponsor.goalPercentage) }}%
-              </td>
-              <td>
-                <span class="rendimiento" [ngClass]="getRendimientoClass(sponsor.goalPercentage)">
-                  {{ getRendimientoText(sponsor.goalPercentage) }}
-                </span>
-              </td>
-            </tr>
-            <tr class="total-row">
-              <td><strong>TOTAL</strong></td>
-              <td><strong>{{ quickStats.totalActiveExecutives }}</strong></td>
-              <td><strong>{{ quickStats.totalCallsToday }}</strong></td>
-              <td><strong>{{ quickStats.totalDailyGoal }}</strong></td>
-              <td class="percentage excellent">
-                <strong>{{ quickStats.goalProgressPercentage }}%</strong>
-              </td>
-              <td><strong>{{ calculateContactados(quickStats.totalCallsToday) }}</strong></td>
-              <td class="percentage good">
-                <strong>{{ quickStats.contactedPercentage }}%</strong>
-              </td>
-              <td class="percentage excellent">
-                <strong>{{ calculateEfficiency(quickStats.goalProgressPercentage) }}%</strong>
-              </td>
-              <td>
-                <span class="rendimiento excellent">
-                  <strong>{{ getRendimientoText(quickStats.goalProgressPercentage) }}</strong>
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- Información adicional -->
+    <div *ngIf="!loading && !error" class="info-section">
+      <strong>Información del Sistema:</strong><br>
+      • Los datos se sincronizan automáticamente cada 15 minutos desde Google Sheets<br>
+      • Las métricas de rendimiento se calculan en tiempo real<br>
+      • Los indicadores de color: 🟢 Excelente (>80%) | 🔵 Bueno (60-80%) | 🟡 Regular (40-60%) | 🔴 Pobre (<40%)<br>
+      • Estado del sistema: {{ getSystemStatusText((syncStatus && syncStatus[0]) ? syncStatus[0].status : 0) }}<br>
+      • Última actualización exitosa: {{ quickStats?.lastUpdateTimestamp || 'Desconocida' }}
+    </div>
 
-      <!-- Gráfico de rendimiento -->
-      <div class="chart-section">
-        <div class="chart-header">
-          <h3>📈 Tendencia de Rendimiento</h3>
-        </div>
-        <div class="chart-container">
-          <highcharts-chart 
-            [Highcharts]="Highcharts"
-            [options]="performanceChartOptions">
-          </highcharts-chart>
-        </div>
-      </div>
-
-      <!-- Métricas adicionales con datos reales -->
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon">👥</div>
-          <div class="metric-content">
-            <h4>{{ quickStats.totalActiveExecutives }}</h4>
-            <p>Ejecutivos Activos</p>
-            <small>Promedio: {{ quickStats.averageCallsPerExecutive | number:'1.1-1' }} llamadas/ejecutivo</small>
-          </div>
-        </div>
-        
-        <div class="metric-card">
-          <div class="metric-icon">📞</div>
-          <div class="metric-content">
-            <h4>{{ quickStats.contactedPercentage }}%</h4>
-            <p>Tasa de Contacto</p>
-            <small>{{ calculateContactados(quickStats.totalCallsToday) }} contactos exitosos</small>
-          </div>
-        </div>
-        
-        <div class="metric-card">
-          <div class
+  </div>
+</div>
