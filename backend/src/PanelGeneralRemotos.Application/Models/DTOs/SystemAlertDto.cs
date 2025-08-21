@@ -347,4 +347,28 @@ public class AlertsSummaryDto
     /// Última alerta generada
     /// </summary>
     public DateTime? LastAlertTime { get; set; }
+    /// <summary>
+    /// Timestamp (alias para CreatedAt para compatibilidad)
+    /// </summary>
+    public DateTime Timestamp 
+    { 
+        get => CreatedAt; 
+        set => CreatedAt = value; 
+    }
+
+    /// <summary>
+    /// Indica si la alerta requiere acción del usuario
+    /// </summary>
+    public bool IsActionable { get; set; } = false;
+
+    /// <summary>
+    /// Texto de la acción sugerida
+    /// </summary>
+    public string? ActionText { get; set; }
+
+    /// <summary>
+    /// Prioridad de la alerta
+    /// </summary>
+    public AlertPriority Priority { get; set; } = AlertPriority.Medium;
+    public DateTime CreatedAt { get; private set; }
 }

@@ -34,10 +34,10 @@ namespace PanelGeneralRemotos.Application.Services.Implementations
                 ProblematicSponsors = new Random().Next(0, 2),
                 ContactedPercentage = new Random().Next(65, 85),
                 GoalProgressPercentage = new Random().Next(70, 95),
-                TotalDailyGoal = 660, // 11 ejecutivos × 60 llamadas
+                TotalGoal = 660, // 11 ejecutivos × 60 llamadas
                 TotalActiveExecutives = 11,
                 AverageCallsPerExecutive = new Random().Next(50, 70),
-                LastUpdateTimestamp = DateTime.UtcNow.AddMinutes(-new Random().Next(1, 30)),
+                LastRefresh = DateTime.UtcNow.AddMinutes(-new Random().Next(1, 30)),
                 HasSyncIssues = new Random().Next(0, 100) < 10, // 10% chance
                 MinutesSinceLastSync = new Random().Next(1, 60),
                 SystemStatus = SystemHealthStatus.Healthy,

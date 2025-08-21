@@ -12,6 +12,7 @@ namespace PanelGeneralRemotos.Application.Models.DTOs;
 /// DTO para el resultado de la actualización manual del dashboard
 /// Respuesta del botón "ACTUALIZAR" principal
 /// </summary>
+
 public class DashboardRefreshResultDto
 {
     /// <summary>

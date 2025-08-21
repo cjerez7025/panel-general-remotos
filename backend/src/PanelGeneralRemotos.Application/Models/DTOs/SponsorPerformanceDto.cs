@@ -2,6 +2,7 @@
 // Archivo: SponsorPerformanceDto.cs
 // Propósito: DTO para métricas de rendimiento de sponsors
 // Creado: 11/08/2025 - Initial creation
+// Modificado: 21/08/2025 - CORREGIDO: Eliminada definición duplicada de DateRange
 // Proyecto: Panel General Remotos
 // Ubicación: backend/src/PanelGeneralRemotos.Application/Models/DTOs/SponsorPerformanceDto.cs
 // ============================================================================
@@ -35,6 +36,7 @@ public class SponsorPerformanceDto
 
     /// <summary>
     /// Rango de fechas del análisis
+    /// CORRECCIÓN: Esta referencia ahora apunta a DateRange en MissingCallRecordDTOs.cs
     /// </summary>
     public DateRange DateRange { get; set; } = new();
 
@@ -173,81 +175,56 @@ public class GoalMetricsDto
     /// <summary>
     /// Meta diaria promedio
     /// </summary>
-    public int DailyGoalAverage { get; set; }
+    public decimal DailyGoalAverage { get; set; }
 
     /// <summary>
-    /// Meta mensual total
+    /// Meta total del período
     /// </summary>
-    public int MonthlyGoal { get; set; }
+    public int TotalPeriodGoal { get; set; }
 
     /// <summary>
-    /// Días transcurridos en el período
+    /// Progreso actual hacia la meta
     /// </summary>
-    public int DaysElapsed { get; set; }
+    public decimal GoalProgress { get; set; }
 
     /// <summary>
-    /// Días restantes en el período
+    /// Porcentaje de cumplimiento de meta
     /// </summary>
-    public int DaysRemaining { get; set; }
+    public decimal GoalAchievementPercentage { get; set; }
 
     /// <summary>
-    /// Progreso esperado a la fecha (%)
+    /// Días restantes para alcanzar la meta
     /// </summary>
-    public decimal ExpectedProgress { get; set; }
+    public int DaysToReachGoal { get; set; }
 
     /// <summary>
-    /// Progreso real a la fecha (%)
+    /// Llamadas diarias necesarias para alcanzar la meta
     /// </summary>
-    public decimal ActualProgress { get; set; }
+    public decimal RequiredDailyCallsToMeetGoal { get; set; }
 
     /// <summary>
-    /// Diferencia entre progreso real y esperado
+    /// Indica si la meta es alcanzable
     /// </summary>
-    public decimal ProgressDifference { get; set; }
+    public bool IsGoalAchievable { get; set; }
 
     /// <summary>
-    /// Proyección de cumplimiento de meta mensual
+    /// Proyección de cumplimiento basada en tendencia actual
     /// </summary>
-    public decimal MonthlyGoalProjection { get; set; }
+    public decimal ProjectedGoalCompletion { get; set; }
 
     /// <summary>
-    /// Días con meta cumplida
+    /// Diferencia entre progreso actual y progreso esperado
     /// </summary>
-    public int DaysGoalMet { get; set; }
+    public decimal GoalVariance { get; set; }
 
     /// <summary>
-    /// Días con meta no cumplida
+    /// Estado del cumplimiento de la meta
     /// </summary>
-    public int DaysGoalNotMet { get; set; }
-
-    /// <summary>
-    /// Porcentaje de días con meta cumplida
-    /// </summary>
-    public decimal GoalMetDaysPercentage { get; set; }
-
-    /// <summary>
-    /// Mejor día del período
-    /// </summary>
-    public DateTime? BestDay { get; set; }
-
-    /// <summary>
-    /// Resultado del mejor día
-    /// </summary>
-    public int BestDayResult { get; set; }
-
-    /// <summary>
-    /// Peor día del período
-    /// </summary>
-    public DateTime? WorstDay { get; set; }
-
-    /// <summary>
-    /// Resultado del peor día
-    /// </summary>
-    public int WorstDayResult { get; set; }
+    public GoalStatus GoalStatus { get; set; }
 }
 
 /// <summary>
-/// Rendimiento de un ejecutivo específico
+/// Métricas de rendimiento por ejecutivo
 /// </summary>
 public class ExecutivePerformanceDto
 {
@@ -262,49 +239,104 @@ public class ExecutivePerformanceDto
     public string ExecutiveName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Nombre corto/identificador
+    /// Nombre corto o identificador
     /// </summary>
     public string ShortName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Indica si está activo
+    /// Indica si el ejecutivo está activo
     /// </summary>
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
     /// <summary>
-    /// KPIs individuales del ejecutivo
+    /// Total de llamadas del ejecutivo
     /// </summary>
-    public ExecutiveKpisDto KPIs { get; set; } = new();
+    public int TotalCalls { get; set; }
 
     /// <summary>
-    /// Nivel de rendimiento individual
+    /// Meta diaria del ejecutivo
+    /// </summary>
+    public int DailyGoal { get; set; }
+
+    /// <summary>
+    /// Meta total para el período
+    /// </summary>
+    public int TotalGoal { get; set; }
+
+    /// <summary>
+    /// Porcentaje de cumplimiento de meta
+    /// </summary>
+    public decimal GoalAchievementPercentage { get; set; }
+
+    /// <summary>
+    /// Promedio de llamadas por día
+    /// </summary>
+    public decimal AverageCallsPerDay { get; set; }
+
+    /// <summary>
+    /// Nivel de rendimiento del ejecutivo
     /// </summary>
     public PerformanceLevel PerformanceLevel { get; set; }
 
     /// <summary>
-    /// Ranking entre ejecutivos del sponsor (1 = mejor)
+    /// Total contactados por el ejecutivo
+    /// </summary>
+    public int TotalContactados { get; set; }
+
+    /// <summary>
+    /// Total interesados generados
+    /// </summary>
+    public int TotalInteresados { get; set; }
+
+    /// <summary>
+    /// Total cerrados (ventas)
+    /// </summary>
+    public int TotalCerrados { get; set; }
+
+    /// <summary>
+    /// Tasa de contactabilidad
+    /// </summary>
+    public decimal ContactabilityRate { get; set; }
+
+    /// <summary>
+    /// Tasa de conversión a interesado
+    /// </summary>
+    public decimal InterestConversionRate { get; set; }
+
+    /// <summary>
+    /// Tasa de cierre
+    /// </summary>
+    public decimal ClosingRate { get; set; }
+
+    /// <summary>
+    /// Eficiencia general del ejecutivo
+    /// </summary>
+    public decimal OverallEfficiency { get; set; }
+
+    /// <summary>
+    /// Ranking del ejecutivo en el sponsor
     /// </summary>
     public int Ranking { get; set; }
 
     /// <summary>
-    /// Porcentaje de contribución al sponsor
+    /// Mejor día (más llamadas)
     /// </summary>
-    public decimal ContributionPercentage { get; set; }
+    public DateTime? BestPerformanceDay { get; set; }
 
     /// <summary>
-    /// Tendencia del ejecutivo (mejorando, empeorando, estable)
+    /// Peor día (menos llamadas)
     /// </summary>
-    public string Trend { get; set; } = string.Empty;
+    public DateTime? WorstPerformanceDay { get; set; }
 
     /// <summary>
-    /// Días trabajados en el período
+    /// Tendencia de rendimiento (mejorando, estable, empeorando)
     /// </summary>
-    public int WorkingDays { get; set; }
+    public PerformanceTrend Trend { get; set; }
 
     /// <summary>
-    /// Última actividad registrada
+    /// Llamadas por fecha del ejecutivo
     /// </summary>
-    public DateTime? LastActivity { get; set; }
+    public Dictionary<DateTime, int> CallsByDate { get; set; } = new();
 
     /// <summary>
     /// Alertas específicas del ejecutivo
@@ -313,90 +345,34 @@ public class ExecutivePerformanceDto
 }
 
 /// <summary>
-/// KPIs específicos de un ejecutivo
-/// </summary>
-public class ExecutiveKpisDto
-{
-    /// <summary>
-    /// Total gestionado por el ejecutivo
-    /// </summary>
-    public int Gestionado { get; set; }
-
-    /// <summary>
-    /// Meta individual para el período
-    /// </summary>
-    public int Meta { get; set; }
-
-    /// <summary>
-    /// Porcentaje de avance individual
-    /// </summary>
-    public decimal AvancePercentage { get; set; }
-
-    /// <summary>
-    /// Total contactados
-    /// </summary>
-    public int Contactados { get; set; }
-
-    /// <summary>
-    /// Porcentaje de contactados
-    /// </summary>
-    public decimal ContactadosPercentage { get; set; }
-
-    /// <summary>
-    /// Total interesados
-    /// </summary>
-    public int Interesados { get; set; }
-
-    /// <summary>
-    /// Porcentaje de interesados
-    /// </summary>
-    public decimal InteresadosPercentage { get; set; }
-
-    /// <summary>
-    /// Total cerrados
-    /// </summary>
-    public int Cerrados { get; set; }
-
-    /// <summary>
-    /// Porcentaje de cerrados
-    /// </summary>
-    public decimal CerradosPercentage { get; set; }
-
-    /// <summary>
-    /// Llamadas promedio por día
-    /// </summary>
-    public decimal AverageCallsPerDay { get; set; }
-
-    /// <summary>
-    /// Mejor día del ejecutivo
-    /// </summary>
-    public DateTime? BestDay { get; set; }
-
-    /// <summary>
-    /// Llamadas en el mejor día
-    /// </summary>
-    public int BestDayCount { get; set; }
-}
-
-/// <summary>
-/// Tendencias de rendimiento
+/// Tendencias históricas de rendimiento
 /// </summary>
 public class PerformanceTrendsDto
 {
     /// <summary>
-    /// Tendencia general (improving, declining, stable)
+    /// Datos de tendencia diaria
     /// </summary>
-    public string OverallTrend { get; set; } = string.Empty;
+    public List<TrendDataPointDto> DailyTrends { get; set; } = new();
 
     /// <summary>
-    /// Datos para gráfico de tendencia (últimos 30 días)
+    /// Datos de tendencia semanal
     /// </summary>
-    public List<TrendDataPointDto> TrendData { get; set; } = new();
+    public List<TrendDataPointDto> WeeklyTrends { get; set; } = new();
 
     /// <summary>
-    /// Cambio porcentual vs período anterior
+    /// Datos de tendencia mensual
     /// </summary>
-    public decimal ChangeFromPreviousPeriod { get; set; }
+    public List<TrendDataPointDto> MonthlyTrends { get; set; } = new();
+
+    /// <summary>
+    /// Tendencia general (mejorando, estable, empeorando)
+    /// </summary>
+    public PerformanceTrend OverallTrend { get; set; }
+
+    /// <summary>
+    /// Porcentaje de cambio en el período
+    /// </summary>
+    public decimal PercentageChange { get; set; }
 
     /// <summary>
     /// Proyección para el próximo período
@@ -533,36 +509,9 @@ public class SponsorComparisonMetricDto
     public decimal MetricPercentile { get; set; }
 }
 
-/// <summary>
-/// Rango de fechas
-/// </summary>
-public class DateRange
-{
-    /// <summary>
-    /// Fecha de inicio
-    /// </summary>
-    public DateTime StartDate { get; set; }
-
-    /// <summary>
-    /// Fecha de fin
-    /// </summary>
-    public DateTime EndDate { get; set; }
-
-    /// <summary>
-    /// Número de días en el rango
-    /// </summary>
-    public int TotalDays => (EndDate - StartDate).Days + 1;
-
-    /// <summary>
-    /// Indica si incluye el día actual
-    /// </summary>
-    public bool IncludesToday => EndDate.Date >= DateTime.Today;
-
-    /// <summary>
-    /// Descripción del rango
-    /// </summary>
-    public string Description { get; set; } = string.Empty;
-}
+// ============================================================================
+// ENUMS AUXILIARES
+// ============================================================================
 
 /// <summary>
 /// Estado de un sponsor
@@ -630,3 +579,82 @@ public enum PerformanceLevel
     /// </summary>
     NoData
 }
+
+/// <summary>
+/// Estado del cumplimiento de meta
+/// </summary>
+public enum GoalStatus
+{
+    /// <summary>
+    /// Por encima de la meta
+    /// </summary>
+    AboveGoal,
+
+    /// <summary>
+    /// En línea con la meta
+    /// </summary>
+    OnTrack,
+
+    /// <summary>
+    /// Ligeramente por debajo
+    /// </summary>
+    SlightlyBehind,
+
+    /// <summary>
+    /// Significativamente por debajo
+    /// </summary>
+    SignificantlyBehind,
+
+    /// <summary>
+    /// Muy por debajo de la meta
+    /// </summary>
+    FarBehind,
+
+    /// <summary>
+    /// Sin actividad
+    /// </summary>
+    NoActivity
+}
+
+/// <summary>
+/// Tendencia de rendimiento
+/// </summary>
+public enum PerformanceTrend
+{
+    /// <summary>
+    /// Mejorando significativamente
+    /// </summary>
+    ImprovingSignificantly,
+
+    /// <summary>
+    /// Mejorando
+    /// </summary>
+    Improving,
+
+    /// <summary>
+    /// Estable
+    /// </summary>
+    Stable,
+
+    /// <summary>
+    /// Empeorando
+    /// </summary>
+    Declining,
+
+    /// <summary>
+    /// Empeorando significativamente
+    /// </summary>
+    DecliningSignificantly,
+
+    /// <summary>
+    /// Datos insuficientes
+    /// </summary>
+    InsufficientData
+}
+
+// ============================================================================
+// CORRECCIÓN APLICADA:
+// ❌ ELIMINADA la definición duplicada de DateRange (que estaba en línea ~539)
+// ✅ Ahora DateRange se referencia desde MissingCallRecordDTOs.cs
+// ✅ Archivo listo para compilación sin errores CS0101
+// ============================================================================
