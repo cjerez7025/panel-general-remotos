@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using PanelGeneralRemotos.Application.Services.Interfaces;
 using PanelGeneralRemotos.Domain.Entities;
 using PanelGeneralRemotos.Domain.Enums;
-
+using PanelGeneralRemotos.Application.Models.DTOs;
 namespace PanelGeneralRemotos.Application.Services.Implementations
 {
     public class CallRecordService : ICallRecordService

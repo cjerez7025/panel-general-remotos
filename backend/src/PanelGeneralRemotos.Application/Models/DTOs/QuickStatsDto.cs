@@ -21,6 +21,16 @@ public class QuickStatsDto
     public int TotalCallsToday { get; set; }
 
     /// <summary>
+    /// Meta diaria total (suma de todos los sponsors)
+    /// </summary>
+    public int TotalGoal { get; set; }
+
+    /// <summary>
+    /// Porcentaje general de cumplimiento
+    /// </summary>
+    public decimal OverallPercentage { get; set; }
+
+    /// <summary>
     /// Porcentaje de cambio respecto al día anterior
     /// Positivo = incremento, Negativo = disminución
     /// </summary>
@@ -51,11 +61,6 @@ public class QuickStatsDto
     public decimal GoalProgressPercentage { get; set; }
 
     /// <summary>
-    /// Meta diaria total (suma de todos los sponsors)
-    /// </summary>
-    public int TotalDailyGoal { get; set; }
-
-    /// <summary>
     /// Número total de ejecutivos activos
     /// </summary>
     public int TotalActiveExecutives { get; set; }
@@ -69,7 +74,12 @@ public class QuickStatsDto
     /// Timestamp de la última actualización de datos
     /// Para mostrar en el header "Última sincronización"
     /// </summary>
-    public DateTime LastUpdateTimestamp { get; set; }
+    public DateTime LastRefresh { get; set; }
+
+    /// <summary>
+    /// Timestamp de generación de este reporte
+    /// </summary>
+    public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Indica si hay algún problema de sincronización
@@ -87,6 +97,11 @@ public class QuickStatsDto
     public SystemHealthStatus SystemStatus { get; set; }
 
     /// <summary>
+    /// Estado de la fuente de datos
+    /// </summary>
+    public string DataSourceStatus { get; set; } = "Connected";
+
+    /// <summary>
     /// Información adicional sobre el estado
     /// </summary>
     public string? StatusMessage { get; set; }
@@ -94,10 +109,10 @@ public class QuickStatsDto
     /// <summary>
     /// Breakdown por sponsor para análisis rápido
     /// </summary>
-    public List<SponsorQuickStatsDto> SponsorBreakdown { get; set; } = new();
+    public List<SponsorQuickStatsDto> SponsorStats { get; set; } = new();
 
     /// <summary>
-    /// ✅ CORREGIDO: Indicador de tendencia con valor por defecto
+    /// Indicador de tendencia con valor por defecto
     /// </summary>
     public string TrendIndicator { get; set; } = "stable";
 }
@@ -128,9 +143,9 @@ public class SponsorQuickStatsDto
     public decimal GoalPercentage { get; set; }
 
     /// <summary>
-    /// Estado del sponsor
+    /// Estado del sponsor (usando el enum de MissingDTOs.cs)
     /// </summary>
-    public SponsorHealthStatus Status { get; set; }
+    public string Status { get; set; } = "Unknown";
 
     /// <summary>
     /// Color hexadecimal para mostrar en la UI
@@ -141,6 +156,16 @@ public class SponsorQuickStatsDto
     /// Número de ejecutivos activos del sponsor
     /// </summary>
     public int ActiveExecutives { get; set; }
+
+    /// <summary>
+    /// Icono de tendencia para mostrar en la UI
+    /// </summary>
+    public string? TrendIcon { get; set; }
+
+    /// <summary>
+    /// Última actualización de datos del sponsor
+    /// </summary>
+    public DateTime LastUpdate { get; set; } = DateTime.UtcNow;
 }
 
 /// <summary>
@@ -167,35 +192,4 @@ public enum SystemHealthStatus
     /// Sistema no disponible
     /// </summary>
     Down
-}
-
-/// <summary>
-/// Estado de salud de un sponsor específico
-/// </summary>
-public enum SponsorHealthStatus
-{
-    /// <summary>
-    /// Rendimiento excelente (>90% meta)
-    /// </summary>
-    Excellent,
-
-    /// <summary>
-    /// Rendimiento bueno (70-90% meta)
-    /// </summary>
-    Good,
-
-    /// <summary>
-    /// Rendimiento regular (50-70% meta)
-    /// </summary>
-    Average,
-
-    /// <summary>
-    /// Rendimiento bajo (<50% meta)
-    /// </summary>
-    Poor,
-
-    /// <summary>
-    /// Sin datos o sin actividad
-    /// </summary>
-    NoData
 }
